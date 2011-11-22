@@ -1,0 +1,5 @@
+description = "Access to GDBM/NDBM databases"
+requires = ""
+version = "1.0"
+archive(byte) = "dbm.cma"
+archive(native) = "dbm.cmxa"
