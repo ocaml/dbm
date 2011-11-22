@@ -1,0 +1,93 @@
+#! /bin/sh
+
+#########################################################################
+#                                                                       #
+#                                 CamlDBM                               #
+#                                                                       #
+#            Xavier Leroy, projet Gallium, INRIA Rocquencourt           #
+#                                                                       #
+#   Copyright 2011 Institut National de Recherche en Informatique et    #
+#   en Automatique.  All rights reserved.  This file is distributed     #
+#   under the terms of the GNU Library General Public License, with     #
+#   the special exception on linking described in file LICENSE.         #
+#                                                                       #
+#########################################################################
+
+version=`ocamlc -version`
+
+if test $? -ne 0; then
+  echo "ocamlc not found, aborting."
+  exit 2
+fi
+
+echo "Configuring for OCaml version $version"
+echo
+
+stdlib=`ocamlc -where`
+
+hasgot() {
+  rm -f hasgot.c
+  (echo "#include <$2>"
+   echo 'int main() {'
+   echo '  (void) dbm_open("foo", 0, 0);'
+   echo '  return 0;'
+   echo '}') > hasgot.c
+  ${CC:-cc} -I$1 -o hasgot.exe hasgot.c $3 $4
+  res=$?
+  rm -f hasgot.c hasgot.exe
+  return $?
+}
+
+dbm_include="not found"
+dbm_link="not found"
+dbm_defines=""
+
+for dir in /usr/include /usr/include/db1 /usr/include/gdbm; do
+  if test -f $dir/ndbm.h; then
+    dbm_include=$dir
+    if hasgot $dir ndbm.h; then
+      dbm_link=""
+    elif hasgot $dir ndbm.h -lndbm; then
+      dbm_link="-lndbm"
+    elif hasgot $dir ndbm.h -ldb1; then
+      dbm_link="-ldb1"
+    elif hasgot $dir ndbm.h -lgdbm; then
+      dbm_link="-lgdbm"
+    elif hasgot $dir ndbm.h -lgdbm_compat -lgdbm; then
+      dbm_link="-lgdbm_compat -lgdbm"
+    fi
+    break
+  fi
+  if test -f $dir/gdbm-ndbm.h; then
+    dbm_include=$dir
+    dbm_defines="-DDBM_USES_GDBM_NDBM"
+    if hasgot $dir gdbm-ndbm.h -lgdbm_compat -lgdbm; then
+      dbm_link="-lgdbm_compat -lgdbm"
+    fi
+    break
+  fi
+done
+if test "$dbm_include" = "not found" || test "$dbm_link" = "not found"; then
+  echo "NDBM not found, the \"camldbm\" library cannot be built."
+  exit 2
+fi
+
+echo "Configuration for the \"camldbm\" library:"
+echo "        headers found in ......... $dbm_include"
+echo "        options for compiling .... $dbm_defines"
+echo "        options for linking ...... $dbm_link"
+echo
+echo "Configuration successful"
+echo
+
+if test "$dbm_include" = "/usr/include"; then
+  dbm_include=""
+else
+  dbm_include="-I$dbm_include"
+fi
+
+echo "OCAML_STDLIB=$stdlib" > Makefile.config
+echo "DBM_INCLUDES=$dbm_include" >> Makefile.config
+echo "DBM_LINK=$dbm_link" >> Makefile.config
+echo "DBM_DEFINES=$dbm_defines" >> Makefile.config
+
