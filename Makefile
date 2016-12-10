@@ -51,13 +51,13 @@ libcamldbm.$(A): cldbm.$(O)
 	$(OCAMLOPT) -c $(COMPFLAGS) $<
 
 .c.$(O):
-	$(OCAMLC) -c -ccopt "$(DBM_INCLUDE)" -ccopt "$(DBM_DEFINES)" $<
+	$(OCAMLC) -c -ccopt "$(DBM_INCLUDES)" -ccopt "$(DBM_DEFINES)" $<
 
 depend:
 	$(OCAMLDEP) *.ml *.mli > .depend
 
 install::
-	if test -f dllcamldbm.$(SO); then cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi 
+	if test -f dllcamldbm.$(SO); then mkdir $(STUBLIBDIR) || echo Ok; cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi 
 	cp libcamldbm.$(A) $(LIBDIR)/
 	cd $(LIBDIR) && ranlib libcamldbm.$(A)
 	cp dbm.cma dbm.cmxa dbm.cmi dbm.mli $(LIBDIR)/
