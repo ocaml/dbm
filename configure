@@ -42,7 +42,7 @@ dbm_include="not found"
 dbm_link="not found"
 dbm_defines=""
 
-for dir in /usr/include /usr/include/db1 /usr/include/gdbm; do
+for dir in /usr/include /usr/include/db1 /usr/include/gdbm /usr/local/include; do
   if test -f $dir/ndbm.h; then
     dbm_include=$dir
     if hasgot $dir ndbm.h; then
