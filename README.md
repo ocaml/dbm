@@ -2,7 +2,7 @@
 
 ## OVERVIEW
 
-This OCaml library is a binding to the NDBM/GDBM Unix "databases".
+This OCaml library is a binding to the NDBM/GDBM Unix "databases" -- more exactly, persistent key-value stores.
 
 See the file `dbm.mli` for documentation of the programming inteface.
 
@@ -12,7 +12,7 @@ This library used to be included in the standard OCaml distribution. This is the
 ## REQUIREMENTS
 
 * OCaml
-* Either the GDBM library or any NDBM-compatible library (make sure to install the development files as well, e.g. the package `libgdbm-dev` for Debian or Ubuntu).
+* Either the GDBM library or any NDBM-compatible library.  Make sure to install the development files as well.  For Debian or Ubuntu, install the package `libgdbm-compat-dev` if it exists, otherwise the package `libgdbm-dev`.
 
 
 ## INSTALLATION
