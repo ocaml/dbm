@@ -29,7 +29,11 @@ hasgot() {
   rm -f hasgot.c
   (echo "#include <$2>"
    echo 'int main() {'
-   echo '  (void) dbm_open("foo", 0, 0);'
+   if test $2 = gdbm.h; then
+     echo '  (void) gdbm_open("foo", 0, 0, 0, NULL);'
+   else
+     echo '  (void) dbm_open("foo", 0, 0);'
+   fi
    echo '  return 0;'
    echo '}') > hasgot.c
   ${CC:-cc} -I$1 -o hasgot.exe hasgot.c $3 $4
@@ -45,6 +49,7 @@ dbm_defines=""
 for dir in /usr/include /usr/include/db1 /usr/include/gdbm; do
   if test -f $dir/ndbm.h; then
     dbm_include=$dir
+    dbm_defines="-DDBM_COMPAT"
     if hasgot $dir ndbm.h; then
       dbm_link=""
     elif hasgot $dir ndbm.h -lndbm; then
@@ -60,9 +65,16 @@ for dir in /usr/include /usr/include/db1 /usr/include/gdbm; do
   fi
   if test -f $dir/gdbm-ndbm.h; then
     dbm_include=$dir
-    dbm_defines="-DDBM_USES_GDBM_NDBM"
+    dbm_defines="-DDBM_COMPAT -DDBM_USES_GDBM_NDBM"
     if hasgot $dir gdbm-ndbm.h -lgdbm_compat -lgdbm; then
       dbm_link="-lgdbm_compat -lgdbm"
+    fi
+    break
+  fi
+  if test -f $dir/gdbm.h; then
+    dbm_include=$dir
+    if hasgot $dir gdbm.h -lgdbm; then
+      dbm_link="-lgdbm"
     fi
     break
   fi
