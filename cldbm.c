@@ -79,7 +79,12 @@ value caml_dbm_open(value vfile, value vflags, value vmode) /* ML */
 #ifdef DBM_COMPAT
   DBM *db = dbm_open(file,flags,mode);
 #else
-  char *filename = String_val(caml_stat_strconcat(2, file, ".pag"));
+  const char *ext = ".pag";
+  char *filename = malloc(sizeof(char) * (strlen(file) + strlen(ext) + 1));
+  if (filename == NULL)
+    caml_raise_out_of_memory();
+  strcpy(filename, file);
+  strcat(filename, ext);
   DBM *db = gdbm_open(filename,0,flags,mode,NULL);
 #endif
 
