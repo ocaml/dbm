@@ -1,3 +1,7 @@
+Release 1.2 (2018-05-02)
+	- Use the GDBM interface when the NDBM interface is not available
+	- Look for include files in /usr/local/include as well
+
 Release 1.1 (2016-12-10)
 	- Apply patches from OPAM package for 1.0
 
