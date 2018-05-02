@@ -23,8 +23,14 @@
 
 #ifdef DBM_USES_GDBM_NDBM
 #include <gdbm-ndbm.h>
-#else
+#elif defined DBM_COMPAT
 #include <ndbm.h>
+#else
+#include <gdbm.h>
+#endif
+
+#ifndef DBM_COMPAT
+typedef struct gdbm_file_info DBM;
 #endif
 
 /* Quite close to sys_open_flags, but we need RDWR */
@@ -43,11 +49,18 @@ static void raise_dbm(char *errmsg)
 }
 
 #define DBM_val(v) *((DBM **) &Field(v, 0))
+#define DBM_db_memory_val(v) *((datum **) &Field(v, 1))
 
 static value alloc_dbm(DBM * db)
 {
-  value res = alloc_small(1, Abstract_tag);
+  value res = alloc_small(2, Abstract_tag);
+  datum *db_mem = malloc(sizeof(datum));
+  if (db_mem == NULL)
+    caml_raise_out_of_memory();
   DBM_val(res) = db;
+  DBM_db_memory_val(res) = db_mem;
+  db_mem->dptr = NULL;
+  db_mem->dsize = 0;
   return res;
 }
 
@@ -63,7 +76,17 @@ value caml_dbm_open(value vfile, value vflags, value vmode) /* ML */
   char *file = String_val(vfile);
   int flags = convert_flag_list(vflags, dbm_open_flags);
   int mode = Int_val(vmode);
+#ifdef DBM_COMPAT
   DBM *db = dbm_open(file,flags,mode);
+#else
+  const char *ext = ".pag";
+  char *filename = malloc(sizeof(char) * (strlen(file) + strlen(ext) + 1));
+  if (filename == NULL)
+    caml_raise_out_of_memory();
+  strcpy(filename, file);
+  strcat(filename, ext);
+  DBM *db = gdbm_open(filename,0,flags,mode,NULL);
+#endif
 
   if (db == NULL)
     raise_dbm("Can't open file");
@@ -74,7 +97,11 @@ value caml_dbm_open(value vfile, value vflags, value vmode) /* ML */
 /* Dbm.close: t -> unit */
 value caml_dbm_close(value vdb)       /* ML */
 {
+#ifdef DBM_COMPAT
   dbm_close(extract_dbm(vdb));
+#else
+  gdbm_close(extract_dbm(vdb));
+#endif
   DBM_val(vdb) = NULL;
   return Val_unit;
 }
@@ -85,7 +112,11 @@ value caml_dbm_fetch(value vdb, value vkey)  /* ML */
   datum key,answer;
   key.dptr = String_val(vkey);
   key.dsize = string_length(vkey);
+#ifdef DBM_COMPAT
   answer = dbm_fetch(extract_dbm(vdb), key);
+#else
+  answer = gdbm_fetch(extract_dbm(vdb), key);
+#endif
   if (answer.dptr) {
     value res = alloc_string(answer.dsize);
     memmove (String_val (res), answer.dptr, answer.dsize);
@@ -103,7 +134,11 @@ value caml_dbm_insert(value vdb, value vkey, value vcontent) /* ML */
   content.dptr = String_val(vcontent);
   content.dsize = string_length(vcontent);
 
+#ifdef DBM_COMPAT
   switch(dbm_store(extract_dbm(vdb), key, content, DBM_INSERT)) {
+#else
+  switch(gdbm_store(extract_dbm(vdb), key, content, GDBM_INSERT)) {
+#endif
   case 0:
     return Val_unit;
   case 1:                       /* DBM_INSERT and already existing */
@@ -122,7 +157,11 @@ value caml_dbm_replace(value vdb, value vkey, value vcontent) /* ML */
   content.dptr = String_val(vcontent);
   content.dsize = string_length(vcontent);
 
+#ifdef DBM_COMPAT
   switch(dbm_store(extract_dbm(vdb), key, content, DBM_REPLACE)) {
+#else
+  switch(gdbm_store(extract_dbm(vdb), key, content, GDBM_REPLACE)) {
+#endif
   case 0:
     return Val_unit;
   default:
@@ -136,14 +175,27 @@ value caml_dbm_delete(value vdb, value vkey)         /* ML */
   key.dptr = String_val(vkey);
   key.dsize = string_length(vkey);
 
+#ifdef DBM_COMPAT
   if (dbm_delete(extract_dbm(vdb), key) < 0)
+#else
+  if (gdbm_delete(extract_dbm(vdb), key) < 0)
+#endif
     raise_dbm("dbm_delete");
   else return Val_unit;
 }
 
 value caml_dbm_firstkey(value vdb)            /* ML */
 {
+#ifdef DBM_COMPAT
   datum key = dbm_firstkey(extract_dbm(vdb));
+#else
+  datum key = gdbm_firstkey(extract_dbm(vdb));
+  datum *db_mem = DBM_db_memory_val(vdb);
+  if (db_mem->dptr != NULL)
+    free(db_mem->dptr);
+  (DBM_db_memory_val(vdb))->dptr = key.dptr;
+  (DBM_db_memory_val(vdb))->dsize = key.dsize;
+#endif
 
   if (key.dptr) {
     value res = alloc_string(key.dsize);
@@ -155,7 +207,18 @@ value caml_dbm_firstkey(value vdb)            /* ML */
 
 value caml_dbm_nextkey(value vdb)             /* ML */
 {
+#ifdef DBM_COMPAT
   datum key = dbm_nextkey(extract_dbm(vdb));
+#else
+  datum key = {NULL, 0};
+  datum *db_mem = DBM_db_memory_val(vdb);
+  if (db_mem->dptr != NULL) {
+    key = gdbm_nextkey(extract_dbm(vdb), *db_mem);
+    free(db_mem->dptr);
+    (DBM_db_memory_val(vdb))->dptr = key.dptr;
+    (DBM_db_memory_val(vdb))->dsize = key.dsize;
+  }
+#endif
 
   if (key.dptr) {
     value res = alloc_string(key.dsize);
