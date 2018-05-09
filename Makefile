@@ -25,7 +25,7 @@ LIBDIR=`ocamlc -where`
 STUBLIBDIR=$(LIBDIR)/stublibs
 
 
-all: libcamldbm.$(A) dbm.cma dbm.cmxa dbm.cmxs 
+all: libcamldbm.$(A) dbm.cma dbm.cmxa dbm.cmxs
 
 dbm.cma: dbm.cmo
 	$(OCAMLMKLIB) -o dbm -oc camldbm -linkall dbm.cmo $(DBM_LINK)
@@ -57,7 +57,7 @@ depend:
 	$(OCAMLDEP) *.ml *.mli > .depend
 
 install::
-	if test -f dllcamldbm.$(SO); then mkdir $(STUBLIBDIR) || echo Ok; cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi 
+	if test -f dllcamldbm.$(SO); then mkdir $(STUBLIBDIR) || echo Ok; cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi
 	cp libcamldbm.$(A) $(LIBDIR)/
 	cd $(LIBDIR) && ranlib libcamldbm.$(A)
 	cp dbm.cma dbm.cmxa dbm.cmi dbm.mli $(LIBDIR)/
@@ -83,6 +83,9 @@ test: testdbm.byte testdbm.opt
 	rm -f testdatabase.*
 	./testdbm.opt
 	rm -f testdatabase.*
-	
+
+doc::
+	mkdir -p doc
+	ocamldoc -d doc -html dbm.mli
 
 include .depend
