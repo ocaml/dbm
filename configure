@@ -108,6 +108,11 @@ cat <<EOF > jbuild
  ((names (testdbm))
   (modules (testdbm))
   (libraries (dbm))))
+
+(alias
+ ((name    runtest)
+  (deps    (testdbm.exe))
+  (action  (run \${<}))))
 EOF
 
 if test "$dbm_include" = "/usr/include"; then
