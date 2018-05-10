@@ -92,6 +92,24 @@ echo
 echo "Configuration successful"
 echo
 
+# jbuilder config file generation
+cat <<EOF > jbuild
+(jbuild_version 1)
+
+(library
+ ((name dbm)
+  (public_name dbm)
+  (modules (dbm))
+  (c_names (cldbm))
+  (c_flags ($dbm_defines -I$dbm_include))
+  (c_library_flags ($dbm_link))))
+
+(executables
+ ((names (testdbm))
+  (modules (testdbm))
+  (libraries (dbm))))
+EOF
+
 if test "$dbm_include" = "/usr/include"; then
   dbm_include=""
 else
@@ -102,4 +120,3 @@ echo "OCAML_STDLIB=$stdlib" > Makefile.config
 echo "DBM_INCLUDES=$dbm_include" >> Makefile.config
 echo "DBM_LINK=$dbm_link" >> Makefile.config
 echo "DBM_DEFINES=$dbm_defines" >> Makefile.config
-
