@@ -8,8 +8,9 @@ dev-repo: "https://github.com/ocaml/dbm.git"
 build: [
   ["./configure"]
   ["jbuilder" "build" "-p" name "-j" jobs]
-  ["jbuilder" "build" "testdbm.exe"]
-  ["./_build/default/testdbm.exe"]
+]
+build-test: [
+  ["jbuilder" "runtest" "-p" name]
 ]
 depends: ["jbuilder" {build}]
 depexts: [
