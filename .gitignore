@@ -1,0 +1,17 @@
+testdbm.byte
+testdbm.opt
+
+# general patterns
+
+*.o
+*.a
+*.so
+*.obj
+*.lib
+*.dll
+*.cm[ioxat]
+*.cmx[as]
+*.cmti
+*.annot
+*.exe
+*.sw[po]
