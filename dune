@@ -1,0 +1,27 @@
+(library
+  (name            dbm)
+  (public_name     dbm)
+  (synopsis        "Access to GDBM/NDBM databases")
+  (modules         dbm)
+  (flags           (:standard \ -strict-sequence))
+  (c_names         cldbm)
+  (c_flags         (:include c-flags.sexp))
+  (c_library_flags (:include c-library-flags.sexp))
+  (wrapped         false))
+
+(rule
+  (targets c-flags.sexp c-library-flags.sexp)
+  (deps    configure)
+  (mode    fallback)
+  (action  (run sh -c "./configure --quiet")))
+
+(executable
+  (name      testdbm)
+  (modes     byte exe)
+  (modules   testdbm)
+  (libraries dbm))
+
+(alias
+  (name   runtest)
+  (deps   (:< testdbm.exe))
+  (action (run %{<})))

@@ -20,10 +20,16 @@ if test $? -ne 0; then
   exit 2
 fi
 
-echo "Configuring for OCaml version $version"
-echo
+if [ "$1" = "--quiet" ] ; then
+  QUIET=1
+else
+  QUIET=0
+fi
 
-stdlib=`ocamlc -where`
+if [ $QUIET -eq 0 ] ; then
+  echo "Configuring for OCaml version $version"
+  echo
+fi
 
 # This slightly strange looking command will prefer c_compiler for versions
 # of OCaml which have it, but will fallback to bytecode_c_compiler otherwise
@@ -88,13 +94,15 @@ if test "$dbm_include" = "not found" || test "$dbm_link" = "not found"; then
   exit 2
 fi
 
-echo "Configuration for the \"camldbm\" library:"
-echo "        headers found in ......... $dbm_include"
-echo "        options for compiling .... $dbm_defines"
-echo "        options for linking ...... $dbm_link"
-echo
-echo "Configuration successful"
-echo
+if [ $QUIET -eq 0 ] ; then
+  echo "Configuration for the \"camldbm\" library:"
+  echo "        headers found in ......... $dbm_include"
+  echo "        options for compiling .... $dbm_defines"
+  echo "        options for linking ...... $dbm_link"
+  echo
+  echo "Configuration successful"
+  echo
+fi
 
 if test "$dbm_include" = "/usr/include"; then
   dbm_include=""
@@ -102,8 +110,6 @@ else
   dbm_include="-I$dbm_include"
 fi
 
-echo "OCAML_STDLIB=$stdlib" > Makefile.config
-echo "DBM_INCLUDES=$dbm_include" >> Makefile.config
-echo "DBM_LINK=$dbm_link" >> Makefile.config
-echo "DBM_DEFINES=$dbm_defines" >> Makefile.config
+echo "($dbm_include $dbm_defines)" > c-flags.sexp
+echo "($dbm_link)" > c-library-flags.sexp
 

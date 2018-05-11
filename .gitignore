@@ -1,19 +1,9 @@
-Makefile.config
-
-testdbm.byte
-testdbm.opt
+_build
+.merlin
+dbm.install
+c-flags.sexp
+c-library-flags.sexp
 
 # general patterns
 
-*.o
-*.a
-*.so
-*.obj
-*.lib
-*.dll
-*.cm[ioxat]
-*.cmx[as]
-*.cmti
-*.annot
-*.exe
 *.sw[po]
