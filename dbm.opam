@@ -1,0 +1,26 @@
+opam-version: "1.2"
+maintainer: "https://github.com/ocaml/opam-repository/issues"
+authors: "Francois Rouaix et. al."
+license: "LGPL-v2 with OCaml linking exception"
+homepage: "https://github.com/ocaml/dbm"
+bug-reports: "https://github.com/ocaml/dbm/issues"
+dev-repo: "https://github.com/ocaml/dbm.git"
+build: [
+  ["./configure"]
+  ["jbuilder" "build" "-p" name "-j" jobs]
+]
+build-test: [
+  ["jbuilder" "runtest" "-p" name "-j" jobs]
+]
+depends: ["jbuilder" {build}]
+depexts: [
+  [["debian"] ["libgdbm-dev"]]
+  [["ubuntu"] ["libgdbm-dev"]]
+  [["nixos"] ["gdbm"]]
+  [["centos"] ["gdbm-devel"]]
+  [["rhel"] ["gdbm-devel"]]
+  [["fedora"] ["gdbm-devel"]]
+  [["alpine"] ["gdbm-dev"]]
+  [["homebrew"] ["gdbm"]]
+  [["archlinux"] ["gdbm"]]
+]
