@@ -11,7 +11,7 @@
 #                                                                       #
 #########################################################################
 
-include Makefile.config
+-include Makefile.config
 
 OCAMLC=ocamlc
 OCAMLOPT=ocamlopt
@@ -66,7 +66,7 @@ install::
 	if test -f dbm.cmxs; then cp dbm.cmxs $(LIBDIR)/; fi
 
 clean::
-	rm -f *.cm* *.$(O) *.$(A) *.$(SO)
+	rm -f *.cm* *.$(O) *.$(A) *.$(SO) Makefile.config
 
 testdbm.byte: dbm.cma testdbm.ml
 	$(OCAMLC) -o $@ dbm.cma testdbm.ml
