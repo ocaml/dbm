@@ -60,7 +60,7 @@ install::
 	if test -f dllcamldbm.$(SO); then mkdir $(STUBLIBDIR) || echo Ok; cp dllcamldbm.$(SO) $(STUBLIBDIR)/; fi 
 	cp libcamldbm.$(A) $(LIBDIR)/
 	cd $(LIBDIR) && ranlib libcamldbm.$(A)
-	cp dbm.cma dbm.cmxa dbm.cmi dbm.mli $(LIBDIR)/
+	cp dbm.cmx dbm.cma dbm.cmxa dbm.cmi dbm.mli $(LIBDIR)/
 	cp dbm.$(A) $(LIBDIR)/
 	cd $(LIBDIR) && ranlib dbm.$(A)
 	if test -f dbm.cmxs; then cp dbm.cmxs $(LIBDIR)/; fi
