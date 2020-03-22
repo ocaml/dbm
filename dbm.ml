@@ -56,3 +56,7 @@ let iter f t =
         walk (try Some(nextkey t) with Not_found -> None)
   in
   walk (try Some(firstkey t) with Not_found -> None)
+
+let destroy fn =
+  Sys.remove (fn ^ ".dir");
+  Sys.remove (fn ^ ".pag")
