@@ -25,6 +25,10 @@ echo
 
 stdlib=`ocamlc -where`
 
+# This slightly strange looking command will prefer c_compiler for versions
+# of OCaml which have it, but will fallback to bytecode_c_compiler otherwise
+CC=${CC:-`ocamlc -config | tr -d '\r' | sed -ne 's/.*c_compiler: //p' | head -n 1`}
+
 hasgot() {
   rm -f hasgot.c
   (echo "#include <$2>"
@@ -36,7 +40,7 @@ hasgot() {
    fi
    echo '  return 0;'
    echo '}') > hasgot.c
-  ${CC:-cc} -I$1 -o hasgot.exe hasgot.c $3 $4
+  $CC -I$1 -o hasgot.exe hasgot.c $3 $4 2>/dev/null
   res=$?
   rm -f hasgot.c hasgot.exe
   return $res
@@ -46,7 +50,7 @@ dbm_include="not found"
 dbm_link="not found"
 dbm_defines=""
 
-for dir in /usr/include /usr/include/db1 /usr/include/gdbm /usr/local/include; do
+for dir in `$CC -xc -E -v /dev/null 2>&1 | sed -e '1,/#include <...>/d' -e '/End of search list./,$d'` /usr/include /usr/include/db1 /usr/include/gdbm /usr/local/include ; do
   if test -f $dir/ndbm.h; then
     dbm_include=$dir
     dbm_defines="-DDBM_COMPAT"
