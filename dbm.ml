@@ -18,10 +18,6 @@ type t
 type open_flag =
    Dbm_rdonly | Dbm_wronly | Dbm_rdwr | Dbm_create
 
-type dbm_flag =
-   DBM_INSERT
- | DBM_REPLACE
-
 exception Dbm_error of string
 
 external raw_opendbm : string -> open_flag list -> int -> t
@@ -30,7 +26,7 @@ external raw_opendbm : string -> open_flag list -> int -> t
 let opendbm file flags mode =
   try
     raw_opendbm file flags mode
-  with Dbm_error msg ->
+  with Dbm_error _ ->
     raise(Dbm_error("Can't open file " ^ file))
 
  (* By exporting opendbm as val, we are sure to link in this
