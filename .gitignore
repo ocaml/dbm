@@ -1,0 +1,9 @@
+_build
+.merlin
+dbm.install
+c-flags.sexp
+c-library-flags.sexp
+
+# general patterns
+
+*.sw[po]

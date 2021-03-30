@@ -20,10 +20,20 @@ if test $? -ne 0; then
   exit 2
 fi
 
-echo "Configuring for OCaml version $version"
-echo
+if [ "$1" = "--quiet" ] ; then
+  QUIET=1
+else
+  QUIET=0
+fi
 
-stdlib=`ocamlc -where`
+if [ $QUIET -eq 0 ] ; then
+  echo "Configuring for OCaml version $version"
+  echo
+fi
+
+# This slightly strange looking command will prefer c_compiler for versions
+# of OCaml which have it, but will fallback to bytecode_c_compiler otherwise
+CC=${CC:-`ocamlc -config | tr -d '\r' | sed -ne 's/.*c_compiler: //p' | head -n 1`}
 
 hasgot() {
   rm -f hasgot.c
@@ -36,7 +46,7 @@ hasgot() {
    fi
    echo '  return 0;'
    echo '}') > hasgot.c
-  ${CC:-cc} -I$1 -o hasgot.exe hasgot.c $3 $4
+  $CC -I$1 -o hasgot.exe hasgot.c $3 $4 2>/dev/null
   res=$?
   rm -f hasgot.c hasgot.exe
   return $res
@@ -46,7 +56,7 @@ dbm_include="not found"
 dbm_link="not found"
 dbm_defines=""
 
-for dir in /usr/include /usr/include/db1 /usr/include/gdbm /usr/local/include; do
+for dir in `$CC -xc -E -v /dev/null 2>&1 | sed -e '1,/#include <...>/d' -e '/End of search list./,$d'` /usr/include /usr/include/db1 /usr/include/gdbm /usr/local/include ; do
   if test -f $dir/ndbm.h; then
     dbm_include=$dir
     dbm_defines="-DDBM_COMPAT"
@@ -84,13 +94,15 @@ if test "$dbm_include" = "not found" || test "$dbm_link" = "not found"; then
   exit 2
 fi
 
-echo "Configuration for the \"camldbm\" library:"
-echo "        headers found in ......... $dbm_include"
-echo "        options for compiling .... $dbm_defines"
-echo "        options for linking ...... $dbm_link"
-echo
-echo "Configuration successful"
-echo
+if [ $QUIET -eq 0 ] ; then
+  echo "Configuration for the \"camldbm\" library:"
+  echo "        headers found in ......... $dbm_include"
+  echo "        options for compiling .... $dbm_defines"
+  echo "        options for linking ...... $dbm_link"
+  echo
+  echo "Configuration successful"
+  echo
+fi
 
 if test "$dbm_include" = "/usr/include"; then
   dbm_include=""
@@ -98,8 +110,6 @@ else
   dbm_include="-I$dbm_include"
 fi
 
-echo "OCAML_STDLIB=$stdlib" > Makefile.config
-echo "DBM_INCLUDES=$dbm_include" >> Makefile.config
-echo "DBM_LINK=$dbm_link" >> Makefile.config
-echo "DBM_DEFINES=$dbm_defines" >> Makefile.config
+echo "($dbm_include $dbm_defines)" > c-flags.sexp
+echo "($dbm_link)" > c-library-flags.sexp
 
