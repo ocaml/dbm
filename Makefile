@@ -51,7 +51,7 @@ libcamldbm.$(A): cldbm.$(O)
 	$(OCAMLOPT) -c $(COMPFLAGS) $<
 
 .c.$(O):
-	$(OCAMLC) -c -ccopt "$(DBM_INCLUDES)" -ccopt "$(DBM_DEFINES)" $<
+	$(OCAMLC) -c -ccopt "$(DBM_INCLUDES)" -ccopt "$(DBM_DEFINES)" -ccopt -DCAML_NAME_SPACE $<
 
 depend:
 	$(OCAMLDEP) *.ml *.mli > .depend

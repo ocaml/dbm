@@ -42,10 +42,10 @@ static void raise_dbm (char *errmsg) Noreturn;
 
 static void raise_dbm(char *errmsg)
 {
-  static value * dbm_exn = NULL;
+  static const value * dbm_exn = NULL;
   if (dbm_exn == NULL)
     dbm_exn = caml_named_value("dbmerror");
-  raise_with_string(*dbm_exn, errmsg);
+  caml_raise_with_string(*dbm_exn, errmsg);
 }
 
 #define DBM_val(v) *((DBM **) &Field(v, 0))
@@ -53,7 +53,7 @@ static void raise_dbm(char *errmsg)
 
 static value alloc_dbm(DBM * db)
 {
-  value res = alloc_small(2, Abstract_tag);
+  value res = caml_alloc_small(2, Abstract_tag);
   datum *db_mem = malloc(sizeof(datum));
   if (db_mem == NULL)
     caml_raise_out_of_memory();
@@ -70,11 +70,24 @@ static DBM * extract_dbm(value vdb)
   return DBM_val(vdb);
 }
 
+static value alloc_datum(const datum * d)
+{
+  value res = caml_alloc_string(d->dsize);
+  memcpy ((char *) String_val (res), d->dptr, d->dsize);
+  return res;
+}
+
+static void extract_datum(value v, datum * d)
+{
+  d->dptr = (char *) String_val(v);
+  d->dsize = caml_string_length(v);
+}
+
 /* Dbm.open : string -> Sys.open_flag list -> int -> t */
 value caml_dbm_open(value vfile, value vflags, value vmode) /* ML */
 {
-  char *file = String_val(vfile);
-  int flags = convert_flag_list(vflags, dbm_open_flags);
+  const char *file = String_val(vfile);
+  int flags = caml_convert_flag_list(vflags, dbm_open_flags);
   int mode = Int_val(vmode);
 #ifdef DBM_COMPAT
   DBM *db = dbm_open(file,flags,mode);
@@ -109,31 +122,21 @@ value caml_dbm_close(value vdb)       /* ML */
 /* Dbm.fetch: t -> string -> string */
 value caml_dbm_fetch(value vdb, value vkey)  /* ML */
 {
-  datum key,answer;
-  key.dptr = String_val(vkey);
-  key.dsize = string_length(vkey);
+  datum key, answer;
+  extract_datum(vkey, &key);
 #ifdef DBM_COMPAT
   answer = dbm_fetch(extract_dbm(vdb), key);
 #else
   answer = gdbm_fetch(extract_dbm(vdb), key);
 #endif
-  if (answer.dptr) {
-    value res = alloc_string(answer.dsize);
-    memmove (String_val (res), answer.dptr, answer.dsize);
-    return res;
-  }
-  else raise_not_found();
+  if (answer.dptr) return alloc_datum(&answer); else caml_raise_not_found();
 }
 
 value caml_dbm_insert(value vdb, value vkey, value vcontent) /* ML */
 {
   datum key, content;
-
-  key.dptr = String_val(vkey);
-  key.dsize = string_length(vkey);
-  content.dptr = String_val(vcontent);
-  content.dsize = string_length(vcontent);
-
+  extract_datum(vkey, &key);
+  extract_datum(vcontent, &content);
 #ifdef DBM_COMPAT
   switch(dbm_store(extract_dbm(vdb), key, content, DBM_INSERT)) {
 #else
@@ -151,12 +154,8 @@ value caml_dbm_insert(value vdb, value vkey, value vcontent) /* ML */
 value caml_dbm_replace(value vdb, value vkey, value vcontent) /* ML */
 {
   datum key, content;
-
-  key.dptr = String_val(vkey);
-  key.dsize = string_length(vkey);
-  content.dptr = String_val(vcontent);
-  content.dsize = string_length(vcontent);
-
+  extract_datum(vkey, &key);
+  extract_datum(vcontent, &content);
 #ifdef DBM_COMPAT
   switch(dbm_store(extract_dbm(vdb), key, content, DBM_REPLACE)) {
 #else
@@ -172,9 +171,7 @@ value caml_dbm_replace(value vdb, value vkey, value vcontent) /* ML */
 value caml_dbm_delete(value vdb, value vkey)         /* ML */
 {
   datum key;
-  key.dptr = String_val(vkey);
-  key.dsize = string_length(vkey);
-
+  extract_datum(vkey, &key);
 #ifdef DBM_COMPAT
   if (dbm_delete(extract_dbm(vdb), key) < 0)
 #else
@@ -197,12 +194,7 @@ value caml_dbm_firstkey(value vdb)            /* ML */
   (DBM_db_memory_val(vdb))->dsize = key.dsize;
 #endif
 
-  if (key.dptr) {
-    value res = alloc_string(key.dsize);
-    memmove (String_val (res), key.dptr, key.dsize);
-    return res;
-  }
-  else raise_not_found();
+  if (key.dptr) return alloc_datum(&key); else caml_raise_not_found();
 }
 
 value caml_dbm_nextkey(value vdb)             /* ML */
@@ -220,10 +212,5 @@ value caml_dbm_nextkey(value vdb)             /* ML */
   }
 #endif
 
-  if (key.dptr) {
-    value res = alloc_string(key.dsize);
-    memmove (String_val (res), key.dptr, key.dsize);
-    return res;
-  }
-  else raise_not_found();
+  if (key.dptr) return alloc_datum(&key); else caml_raise_not_found();
 }
