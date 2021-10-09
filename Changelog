@@ -1,4 +1,6 @@
+Release 1.3 (2021-10-09)
 	- Clean up the C stubs; use CAML_NAME_SPACE
+	- Install dbm.cmx (#13, #14)
 
 Release 1.2 (2018-05-02)
 	- Use the GDBM interface when the NDBM interface is not available
