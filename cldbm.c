@@ -21,9 +21,7 @@
 #include <caml/fail.h>
 #include <caml/callback.h>
 
-#ifdef DBM_USES_GDBM_NDBM
-#include <gdbm-ndbm.h>
-#elif defined DBM_COMPAT
+#ifdef DBM_COMPAT
 #include <ndbm.h>
 #else
 #include <gdbm.h>
