@@ -127,7 +127,12 @@ value caml_dbm_fetch(value vdb, value vkey)  /* ML */
 #else
   answer = gdbm_fetch(extract_dbm(vdb), key);
 #endif
-  if (answer.dptr) return alloc_datum(&answer); else caml_raise_not_found();
+  if (answer.dptr) {
+    value res = alloc_datum(&answer);
+    free(answer.dptr);
+    return res;
+  }
+  else caml_raise_not_found();
 }
 
 value caml_dbm_insert(value vdb, value vkey, value vcontent) /* ML */
