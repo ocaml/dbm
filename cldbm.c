@@ -129,7 +129,9 @@ value caml_dbm_fetch(value vdb, value vkey)  /* ML */
 #endif
   if (answer.dptr) {
     value res = alloc_datum(&answer);
+#ifndef DBM_COMPAT
     free(answer.dptr);
+#endif
     return res;
   }
   else caml_raise_not_found();
