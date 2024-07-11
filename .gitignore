@@ -1,0 +1,11 @@
+Makefile.config
+*.cm[aiox]
+*.cmx[as]
+*.o
+*.obj
+*.so
+*.dll
+*.a
+*.lib
+testdbm.byte
+testdbm.opt
