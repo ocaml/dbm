@@ -1,3 +1,7 @@
+Release 1.4 (2024-07-11)
+	- Autoconfiguration revised to find GDBM in more places (#16)
+	- Add missing `free` in `Dbm.fetch` (#18)
+
 Release 1.3 (2021-10-09)
 	- Clean up the C stubs; use CAML_NAME_SPACE
 	- Install dbm.cmx (#13, #14)
