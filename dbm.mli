@@ -43,6 +43,10 @@ val opendbm : string -> open_flag list -> int -> t
 external close : t -> unit = "caml_dbm_close"
 (** Close the given descriptor. *)
 
+val destroy: string -> unit
+(** [destroy fn] removes the underlying dbm files
+    [fn ^ ".pag"] and [fn ^ ".dir"]. *)
+
 external find : t -> string -> string = "caml_dbm_fetch"
 (** [find db key] returns the data associated with the given
    [key] in the database opened for the descriptor [db].
